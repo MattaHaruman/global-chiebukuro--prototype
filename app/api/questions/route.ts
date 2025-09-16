@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { supabase } from '@/lib/supabase'
 import { z } from 'zod'
 
 // Schema for creating a question
@@ -16,38 +16,35 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
-    const skip = (page - 1) * limit
+    const offset = (page - 1) * limit
 
-    const questions = await prisma.question.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        _count: {
-          select: {
-            answers: true,
-          },
-        },
-      },
-    })
+    const { data: questions, error: questionsError } = await supabase
+      .from('Question')
+      .select(`
+        *,
+        user:User(id, name, image),
+        answers:Answer(count)
+      `)
+      .order('createdAt', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-    const totalQuestions = await prisma.question.count()
-    const totalPages = Math.ceil(totalQuestions / limit)
+    if (questionsError) {
+      throw questionsError
+    }
+
+    const { count: totalQuestions } = await supabase
+      .from('Question')
+      .select('*', { count: 'exact', head: true })
+
+    const totalPages = Math.ceil((totalQuestions || 0) / limit)
 
     return NextResponse.json({
-      questions,
+      questions: questions || [],
       pagination: {
         page,
         limit,
         totalPages,
-        totalQuestions,
+        totalQuestions: totalQuestions || 0,
       },
     })
   } catch (error) {
@@ -63,7 +60,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -74,27 +71,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createQuestionSchema.parse(body)
 
-    const question = await prisma.question.create({
-      data: {
+    const { data: question, error: questionError } = await supabase
+      .from('Question')
+      .insert({
         title: validatedData.title,
         body: validatedData.body,
         userId: session.user.id,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        _count: {
-          select: {
-            answers: true,
-          },
-        },
-      },
-    })
+      })
+      .select(`
+        *,
+        user:User(id, name, image)
+      `)
+      .single()
+
+    if (questionError) {
+      throw questionError
+    }
 
     return NextResponse.json(question, { status: 201 })
   } catch (error) {
