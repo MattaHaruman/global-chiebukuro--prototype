@@ -71,7 +71,7 @@ export default function QuestionCard({ question }: Props) {
               {/* Answer count */}
               <div className="flex items-center space-x-1">
                 <MessageCircle className="w-4 h-4" />
-                <span>{question._count.answers}件の回答</span>
+                <span>{question.answers?.length || 0}件の回答</span>
               </div>
             </div>
 

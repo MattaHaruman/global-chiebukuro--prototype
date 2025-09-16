@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { supabase } from '@/lib/supabase'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -35,10 +35,11 @@ export async function POST(
     const validatedData = createAnswerSchema.parse(body)
 
     // Check if question exists
-    const questionExists = await prisma.question.findUnique({
-      where: { id: questionId },
-      select: { id: true },
-    })
+    const { data: questionExists } = await supabase
+      .from('Question')
+      .select('id')
+      .eq('id', questionId)
+      .single()
 
     if (!questionExists) {
       return NextResponse.json(
@@ -47,22 +48,45 @@ export async function POST(
       )
     }
 
-    const answer = await prisma.answer.create({
-      data: {
+    // Ensure user exists in database (same logic as question creation)
+    const { data: existingUser } = await supabase
+      .from('User')
+      .select('id')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!existingUser) {
+      const { error: userError } = await supabase
+        .from('User')
+        .insert({
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+        })
+
+      if (userError) {
+        console.error('Error creating user:', userError)
+        throw new Error('Failed to create user')
+      }
+    }
+
+    const { data: answer, error: answerError } = await supabase
+      .from('Answer')
+      .insert({
         body: validatedData.body,
         questionId,
         userId: session.user.id,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-      },
-    })
+      })
+      .select(`
+        *,
+        user:User(id, name, image)
+      `)
+      .single()
+
+    if (answerError) {
+      throw answerError
+    }
 
     return NextResponse.json(answer, { status: 201 })
   } catch (error) {

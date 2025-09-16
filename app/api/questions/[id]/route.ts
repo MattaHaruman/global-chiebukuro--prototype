@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { supabase } from '@/lib/supabase'
 
 interface RouteParams {
   params: {
@@ -15,32 +15,20 @@ export async function GET(
   try {
     const { id } = params
 
-    const question = await prisma.question.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        answers: {
-          orderBy: { createdAt: 'asc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-          },
-        },
-      },
-    })
+    const { data: question, error: questionError } = await supabase
+      .from('Question')
+      .select(`
+        *,
+        user:User(id, name, image),
+        answers:Answer(
+          *,
+          user:User(id, name, image)
+        )
+      `)
+      .eq('id', id)
+      .single()
 
-    if (!question) {
+    if (questionError || !question) {
       return NextResponse.json(
         { error: 'Question not found' },
         { status: 404 }

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         user:User(id, name, image),
-        answers:Answer(count)
+        answers:Answer(id)
       `)
       .order('createdAt', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
+    console.log('Session:', session)
 
     if (!session?.user) {
       return NextResponse.json(
@@ -69,8 +70,40 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('Request body:', body)
     const validatedData = createQuestionSchema.parse(body)
+    console.log('Validated data:', validatedData)
 
+    // Ensure user exists in database before creating question
+    console.log('Checking if user exists in database:', session.user.id)
+    const { data: existingUser } = await supabase
+      .from('User')
+      .select('id')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!existingUser) {
+      console.log('User not found, creating user:', session.user)
+      const { error: userError } = await supabase
+        .from('User')
+        .insert({
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+        })
+
+      if (userError) {
+        console.error('Error creating user:', userError)
+        throw new Error('Failed to create user')
+      }
+      console.log('User created successfully')
+    } else {
+      console.log('User already exists in database')
+    }
+
+    // Insert question directly - RLS needs to be configured properly in Supabase
+    console.log('Inserting question with userId:', session.user.id)
     const { data: question, error: questionError } = await supabase
       .from('Question')
       .insert({
@@ -85,9 +118,13 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (questionError) {
+      console.error('Supabase error details:', questionError)
+      console.error('Error code:', questionError.code)
+      console.error('Error message:', questionError.message)
       throw questionError
     }
 
+    console.log('Question created successfully:', question)
     return NextResponse.json(question, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
