@@ -127,3 +127,44 @@
   transform: translateX(2px);
   transition: transform 0.2s ease;
 }
+
+/* Markdown styles for preview in cards */
+.markdown-preview {
+  overflow: hidden;
+}
+
+.markdown-preview p {
+  margin-bottom: 0.75rem !important;
+  line-height: 1.5 !important;
+}
+
+.markdown-preview p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3 {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.markdown-preview code {
+  font-size: 0.875rem !important;
+  padding: 0.125rem 0.25rem !important;
+}
+
+.markdown-preview pre {
+  margin-bottom: 0.75rem !important;
+  padding: 0.75rem !important;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  margin-bottom: 0.75rem !important;
+}
+
+.markdown-preview blockquote {
+  margin-bottom: 0.75rem !important;
+  padding-left: 0.75rem !important;
+}

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { QuestionWithUser } from '@/types'
 import { useTranslation } from '@/lib/hooks/useTranslation'
 import { MessageCircle, Clock, User } from 'lucide-react'
+import MarkdownRenderer from './MarkdownRenderer'
 
 interface Props {
   question: QuestionWithUser
@@ -42,17 +43,18 @@ export default function QuestionCard({ question }: Props) {
 
           {/* Body preview - Thought Cloud Shape */}
           <div className="thought-cloud bg-gray-50 p-4 relative">
-            <div className="text-gray-600 text-sm leading-relaxed">
-              {bodyLoading ? (
-                <div className="space-y-2">
-                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
-                  <div className="animate-pulse bg-gray-200 h-4 rounded w-4/5"></div>
-                  <div className="animate-pulse bg-gray-200 h-4 rounded w-3/5"></div>
-                </div>
-              ) : (
-                <p>{translatedBody}</p>
-              )}
-            </div>
+            {bodyLoading ? (
+              <div className="space-y-2">
+                <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-4 rounded w-4/5"></div>
+                <div className="animate-pulse bg-gray-200 h-4 rounded w-3/5"></div>
+              </div>
+            ) : (
+              <MarkdownRenderer
+                content={translatedBody}
+                className="text-sm markdown-preview"
+              />
+            )}
           </div>
 
           {/* Metadata - Tag Shapes */}
