@@ -1,7 +1,17 @@
+'use client'
+
 import QuestionList from '@/components/QuestionList'
+import QuestionSearch from '@/components/QuestionSearch'
+import { useState } from 'react'
 import { Search, MessageCircle, Users, Globe } from 'lucide-react'
 
 export default function HomePage() {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+  }
+
   return (
     <div className="space-y-8">
       {/* Hero section */}
@@ -51,31 +61,21 @@ export default function HomePage() {
 
       {/* Search section */}
       <div className="bg-white rounded-2xl p-6 border-4 border-orange-200 shadow-xl hover-pulse">
-        <div className="relative">
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl">
-            🔍
-          </div>
-          <input
-            type="text"
-            placeholder="🎯 質問を検索してみよう！"
-            className="w-full pl-12 pr-4 py-4 border-2 border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-400 focus:border-purple-500 text-lg font-medium hover-bounce"
-            disabled
-          />
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <span className="text-sm text-purple-500 font-bold bg-purple-100 px-3 py-1 rounded-full">🚧 検索機能は開発中 🚧</span>
-          </div>
-        </div>
+        <QuestionSearch
+          onSearch={handleSearch}
+          initialQuery={searchQuery}
+        />
       </div>
 
       {/* Questions section */}
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 rounded-2xl shadow-lg hover-bounce">
-            🔥 最新の質問 🔥
+            {searchQuery ? `🔍 "${searchQuery}" の検索結果` : '🔥 最新の質問 🔥'}
           </h2>
         </div>
         
-        <QuestionList />
+        <QuestionList searchQuery={searchQuery} />
       </div>
     </div>
   )
