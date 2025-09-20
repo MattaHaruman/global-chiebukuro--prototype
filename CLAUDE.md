@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Global知恵袋 - Q&A Platform
 
 A Yahoo!知恵袋-style Q&A platform prototype built with modern web technologies. Features GitHub OAuth authentication, automatic translation via DeepL API, and a responsive design.
@@ -12,31 +16,54 @@ A Yahoo!知恵袋-style Q&A platform prototype built with modern web technologie
 - **Translation**: DeepL API for multilingual support
 - **Styling**: Tailwind CSS
 - **State Management**: TanStack Query
+- **Package Manager**: Yarn (migrated from npm)
 - **Deployment**: Vercel
 
 ## Development Commands
 
 ```bash
 # Development server
-npm run dev                 # Start development server at http://localhost:3000
+yarn dev                 # Start development server at http://localhost:3000
 
 # Database operations
-npm run db:push            # Push Prisma schema to database
-npm run db:seed            # Seed database with sample data
-npm run db:studio          # Open Prisma Studio
-npm run db:migrate:deploy  # Deploy migrations (production)
+yarn db:push            # Push Prisma schema to database
+yarn db:seed            # Seed database with sample data
+yarn db:studio          # Open Prisma Studio
+yarn db:migrate:deploy  # Deploy migrations (production)
 
 # Build and deployment
-npm run build              # Production build (includes Prisma generate)
-npm run start              # Start production server
-npm run lint               # Run ESLint
+yarn build              # Production build (includes Prisma generate)
+yarn start              # Start production server
+yarn lint               # Run ESLint
+
+# Package management
+yarn add package-name   # Add dependency
+yarn add -D package-name # Add dev dependency
+yarn remove package-name # Remove dependency
 ```
+
+## Search Functionality
+
+### Phase 1: Basic Full-text Search (Implemented)
+- Supabase PostgreSQL `ilike` operator for partial matching
+- Searches both question titles and bodies
+- Real-time search with TanStack Query integration
+- Pagination support for search results
+- Search state management with React hooks
+
+**API Implementation**: `/api/questions` accepts `q` parameter for search queries
+**Components**: `QuestionSearch` component with debounced input, `QuestionList` with search integration
+
+### Future Search Enhancements (Planned)
+- **Phase 2**: Enhanced UX with real-time filtering and autocomplete
+- **Phase 3**: Backend separation with Elasticsearch for advanced search
+- **Phase 4**: Semantic search using embedding vectors for meaning-based queries
 
 ## Database Schema
 
 ### Core Models
 - **User**: GitHub OAuth user data with id, name, email, image
-- **Question**: User-generated questions with title, body, timestamps
+- **Question**: User-generated questions with title, body, timestamps, search functionality
 - **Answer**: Responses to questions linked to users and questions
 - **Account/Session**: NextAuth.js authentication tables
 - **VerificationToken**: NextAuth.js email verification
@@ -51,6 +78,8 @@ npm run lint               # Run ESLint
 
 ### Questions API (`/api/questions`)
 - **GET**: Fetch all questions with user data and answer counts
+  - Query parameters: `page`, `limit`, `q` (search query)
+  - Search implementation: PostgreSQL `ilike` on title and body fields
 - **POST**: Create new question (authenticated users only)
 
 ### Question Details API (`/api/questions/[id]`)
@@ -108,16 +137,16 @@ SUPABASE_ANON_KEY=eyJhbGciOi...       # Supabase anonymous key
 
 ### UI Components (`/components`)
 - **Header.tsx**: Navigation with authentication controls
-- **QuestionList.tsx**: Questions feed with TanStack Query
+- **QuestionList.tsx**: Questions feed with TanStack Query and search integration
 - **QuestionCard.tsx**: Individual question display with translation
 - **QuestionForm.tsx**: Question creation form with validation
+- **QuestionSearch.tsx**: Search input component with real-time functionality
 - **AnswerCard.tsx**: Answer display with user info
 - **AnswerForm.tsx**: Answer submission form
 - **SessionProvider.tsx**: NextAuth session wrapper
 
 ### Core Utilities (`/lib`)
 - **auth.ts**: NextAuth configuration with GitHub provider
-- **prisma.ts**: Prisma client with singleton pattern
 - **supabase.ts**: Supabase client configuration
 - **translation.ts**: DeepL API client with language detection
 
@@ -127,7 +156,7 @@ SUPABASE_ANON_KEY=eyJhbGciOi...       # Supabase anonymous key
 app/
 ├── api/                    # API routes
 │   ├── auth/[...nextauth]/ # NextAuth dynamic routes
-│   ├── questions/          # Question CRUD operations
+│   ├── questions/          # Question CRUD operations with search
 │   │   └── [id]/          # Individual question operations
 │   └── translate/          # DeepL translation endpoint
 ├── auth/signin/           # Custom sign-in page
@@ -135,14 +164,12 @@ app/
 │   ├── new/              # Question creation
 │   └── [id]/             # Question detail view
 ├── layout.tsx            # Root layout with providers
-└── page.tsx              # Home page with question feed
+└── page.tsx              # Home page with question feed and search
 
 components/               # Reusable UI components
 lib/                     # Utility functions and configurations
-prisma/                  # Database schema and migrations
-├── schema.prisma        # Database schema definition
-└── seed.ts             # Database seeding script
 types/                   # TypeScript type definitions
+yarn.lock               # Yarn dependency lock file
 ```
 
 ## Data Flow
@@ -153,6 +180,13 @@ types/                   # TypeScript type definitions
 3. Prisma creates question record with user ID
 4. TanStack Query invalidates question list cache
 5. Redirect to question detail page
+
+### Search Flow
+1. User enters search query in QuestionSearch component
+2. Search state managed in parent component (HomePage)
+3. QuestionList receives searchQuery prop and triggers API call
+4. API `/api/questions?q=query` filters using PostgreSQL `ilike`
+5. Results displayed with pagination support
 
 ### Answer Submission
 1. Form submission to `/api/questions/[id]/answers` POST
@@ -169,10 +203,10 @@ types/                   # TypeScript type definitions
 
 ## Configuration Notes
 
-### Prisma Configuration
-- Uses PostgreSQL provider for production compatibility
-- Query logging enabled in development
-- Global singleton pattern prevents connection issues
+### Package Management
+- **Migrated from npm to Yarn**: Use `yarn` commands instead of `npm`
+- Lock file: `yarn.lock` (committed), `package-lock.json` removed
+- All scripts in package.json work with both npm and yarn
 
 ### NextAuth Configuration
 - JWT strategy for serverless compatibility
@@ -188,10 +222,11 @@ types/                   # TypeScript type definitions
 
 - Uses App Router (stable in Next.js 14)
 - TypeScript with strict type checking
-- Tailwind CSS for responsive design
+- Tailwind CSS for responsive design with colorful, animated styling
 - TanStack Query for server state management
 - Error boundaries and loading states implemented
 - SEO-friendly with proper metadata
+- Search functionality uses real-time updates with debouncing
 
 ## Security Considerations
 
@@ -200,3 +235,10 @@ types/                   # TypeScript type definitions
 - Database queries use Prisma's built-in SQL injection protection
 - Environment variables properly isolated
 - API routes validate authentication before operations
+- Search queries are sanitized through Supabase client
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
