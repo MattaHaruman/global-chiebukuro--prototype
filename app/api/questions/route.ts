@@ -16,15 +16,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
+    const query = searchParams.get('q')
     const offset = (page - 1) * limit
 
-    const { data: questions, error: questionsError } = await supabase
+    let questionsQuery = supabase
       .from('Question')
       .select(`
         *,
         user:User(id, name, image),
         answers:Answer(id)
       `)
+
+    // Add search functionality if query is provided
+    if (query && query.trim()) {
+      questionsQuery = questionsQuery.or(`title.ilike.%${query}%,body.ilike.%${query}%`)
+    }
+
+    const { data: questions, error: questionsError } = await questionsQuery
       .order('createdAt', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -32,9 +40,16 @@ export async function GET(request: NextRequest) {
       throw questionsError
     }
 
-    const { count: totalQuestions } = await supabase
+    // Get total count with same search filter
+    let countQuery = supabase
       .from('Question')
       .select('*', { count: 'exact', head: true })
+
+    if (query && query.trim()) {
+      countQuery = countQuery.or(`title.ilike.%${query}%,body.ilike.%${query}%`)
+    }
+
+    const { count: totalQuestions } = await countQuery
 
     const totalPages = Math.ceil((totalQuestions || 0) / limit)
 
