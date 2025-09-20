@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import QuestionCard from './QuestionCard'
 import { QuestionWithUser } from '@/types'
@@ -16,16 +16,36 @@ interface QuestionsResponse {
   }
 }
 
-async function fetchQuestions(page: number = 1): Promise<QuestionsResponse> {
-  const response = await fetch(`/api/questions?page=${page}&limit=10`)
+async function fetchQuestions(page: number = 1, searchQuery?: string): Promise<QuestionsResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: '10'
+  })
+
+  if (searchQuery && searchQuery.trim()) {
+    params.append('q', searchQuery.trim())
+  }
+
+  const response = await fetch(`/api/questions?${params.toString()}`)
   if (!response.ok) {
     throw new Error('Failed to fetch questions')
   }
   return response.json()
 }
 
-export default function QuestionList() {
+interface QuestionListProps {
+  searchQuery?: string
+}
+
+export default function QuestionList({ searchQuery }: QuestionListProps) {
   const [currentPage, setCurrentPage] = useState(1)
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery])
 
   const {
     data,
@@ -33,8 +53,8 @@ export default function QuestionList() {
     error,
     refetch
   } = useQuery({
-    queryKey: ['questions', currentPage],
-    queryFn: () => fetchQuestions(currentPage),
+    queryKey: ['questions', currentPage, searchQuery],
+    queryFn: () => fetchQuestions(currentPage, searchQuery),
   })
 
   if (isLoading) {
@@ -77,7 +97,7 @@ export default function QuestionList() {
   if (!data || data.questions.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <p>まだ質問がありません</p>
+        <p>{searchQuery ? `"${searchQuery}" に関する質問が見つかりませんでした` : 'まだ質問がありません'}</p>
       </div>
     )
   }
