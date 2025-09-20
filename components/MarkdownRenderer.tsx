@@ -31,7 +31,8 @@ export default function MarkdownRenderer({ content, className = '' }: Props) {
           ),
 
           // Customize code blocks
-          code: ({ inline, children }) => {
+          code: ({ children, ...props }) => {
+            const inline = !props.className?.includes('language-')
             if (inline) {
               return (
                 <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800">
