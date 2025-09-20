@@ -26,15 +26,15 @@ export default function QuestionCard({ question }: Props) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white border-4 border-purple-200 rounded-2xl p-6 hover:shadow-2xl transition-all transform hover:scale-105 hover-bounce rainbow-border">
       <Link href={`/questions/${question.id}`}>
         <div className="space-y-3">
           {/* Title */}
-          <h3 className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors">
+          <h3 className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors hover-pulse">
             {titleLoading ? (
               <div className="animate-pulse bg-gray-200 h-6 rounded w-3/4"></div>
             ) : (
-              translatedTitle
+              <span>💡 {translatedTitle}</span>
             )}
           </h3>
 
@@ -52,33 +52,33 @@ export default function QuestionCard({ question }: Props) {
           </div>
 
           {/* Metadata */}
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-4">
               {/* Author */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-purple-100 px-3 py-1 rounded-full hover-bounce">
                 {question.user.image ? (
                   <img
                     src={question.user.image}
                     alt={question.user.name || 'User'}
-                    className="w-5 h-5 rounded-full"
+                    className="w-6 h-6 rounded-full border-2 border-white"
                   />
                 ) : (
-                  <User className="w-5 h-5" />
+                  <span className="text-lg">👤</span>
                 )}
-                <span>{question.user.name}</span>
+                <span className="font-bold text-purple-700">👨‍💻 {question.user.name}</span>
               </div>
 
               {/* Answer count */}
-              <div className="flex items-center space-x-1">
-                <MessageCircle className="w-4 h-4" />
-                <span>{question.answers?.length || 0}件の回答</span>
+              <div className="flex items-center space-x-1 bg-gradient-to-r from-green-100 to-blue-100 px-3 py-1 rounded-full hover-shake">
+                <span className="text-lg">💬</span>
+                <span className="font-bold text-green-700">{question.answers?.length || 0}件の回答</span>
               </div>
             </div>
 
             {/* Date */}
-            <div className="flex items-center space-x-1">
-              <Clock className="w-4 h-4" />
-              <span>{formatDate(question.createdAt)}</span>
+            <div className="flex items-center space-x-1 bg-gradient-to-r from-orange-100 to-pink-100 px-3 py-1 rounded-full hover-rotate">
+              <span className="text-lg">🕐</span>
+              <span className="font-bold text-orange-700">{formatDate(question.createdAt)}</span>
             </div>
           </div>
         </div>

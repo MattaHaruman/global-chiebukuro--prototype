@@ -8,15 +8,15 @@ export default function Header() {
   const { data: session, status } = useSession()
 
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm">
+    <header className="bg-white border-b-4 border-purple-300 shadow-lg">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-primary-600 text-white p-2 rounded-lg">
-              <span className="text-xl font-bold">Q&A</span>
+          <Link href="/" className="flex items-center space-x-2 hover-bounce">
+            <div className="fun-gradient text-white p-2 rounded-xl hover-pulse">
+              <span className="text-xl font-bold">🤔💭</span>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Global知恵袋</span>
+            <span className="text-2xl font-bold rainbow-text">Global知恵袋 ✨</span>
           </Link>
 
           {/* Navigation */}
@@ -27,10 +27,10 @@ export default function Header() {
               <>
                 <Link
                   href="/questions/new"
-                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                  className="inline-flex items-center px-4 py-2 fun-gradient text-white rounded-full hover-bounce font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                 >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  質問する
+                  <span className="mr-2">🚀</span>
+                  質問する！
                 </Link>
                 
                 <div className="flex items-center space-x-3">
@@ -59,9 +59,9 @@ export default function Header() {
             ) : (
               <button
                 onClick={() => signIn('github')}
-                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                className="inline-flex items-center px-4 py-2 fun-gradient text-white rounded-full hover-bounce font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
               >
-                <LogIn className="w-4 h-4 mr-2" />
+                <span className="mr-2">🎉</span>
                 ログイン
               </button>
             )}
