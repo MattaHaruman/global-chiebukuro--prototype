@@ -3,6 +3,7 @@
 import { AnswerWithUser } from '@/types'
 import { useTranslation } from '@/lib/hooks/useTranslation'
 import { User, Clock } from 'lucide-react'
+import MarkdownRenderer from './MarkdownRenderer'
 
 interface Props {
   answer: AnswerWithUser
@@ -33,9 +34,7 @@ export default function AnswerCard({ answer }: Props) {
             <div className="animate-pulse bg-gray-200 h-4 rounded w-3/6"></div>
           </div>
         ) : (
-          <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {translatedBody}
-          </div>
+          <MarkdownRenderer content={translatedBody} />
         )}
       </div>
 

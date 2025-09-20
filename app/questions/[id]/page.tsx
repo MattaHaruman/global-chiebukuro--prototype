@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import AnswerCard from '@/components/AnswerCard'
 import AnswerForm from '@/components/AnswerForm'
+import MarkdownRenderer from '@/components/MarkdownRenderer'
 import { useTranslation } from '@/lib/hooks/useTranslation'
 import { QuestionWithUser } from '@/types'
 import { ArrowLeft, User, Clock, MessageCircle } from 'lucide-react'
@@ -114,9 +115,7 @@ export default function QuestionDetailPage() {
               <div className="animate-pulse bg-gray-200 h-4 rounded w-4/6"></div>
             </div>
           ) : (
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {translatedBody}
-            </div>
+            <MarkdownRenderer content={translatedBody} />
           )}
         </div>
 
